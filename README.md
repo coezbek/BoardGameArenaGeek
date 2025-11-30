@@ -12,13 +12,13 @@ Clicking the badge opens the game's page on BGG.
 
 ## Screenshots
 
-Works on the [https://boardgamearena.com/gamelist]
-
-<img width="972" height="477" alt="image" src="https://github.com/user-attachments/assets/6b660485-15f1-4f1a-b603-8bba51f22192" />
-
-...and on each game's main page:
+Works on each game's main page:
 
 <img width="1110" height="335" alt="image" src="https://github.com/user-attachments/assets/2687e3d4-a63f-4d26-9e86-833d37ec0a49" />
+
+And on the gamelist [https://boardgamearena.com/gamelist](https://boardgamearena.com/gamelist)
+
+<img width="972" height="477" alt="image" src="https://github.com/user-attachments/assets/6b660485-15f1-4f1a-b603-8bba51f22192" />
 
 ## Installation
 
