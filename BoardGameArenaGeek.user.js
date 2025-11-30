@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BGA to BGG - BoardGameArenaGeek
 // @namespace    https://github.com/coezbek/BoardGameArenaGeek
-// @version      1.0.0
+// @version      1.0.1
 // @description  Fetches BoardGameGeek.com (BGG) stats for games on BoardGameArena.com (BGA).
 // @author       coezbek
 // @match        https://boardgamearena.com/*
@@ -273,7 +273,7 @@
     // --- DATA EXTRACTION ---
     function parseBGGHtml(html) {
         try {
-            const regex = /GEEK\.geekitemPreload\s*=\s*(\{.*?\})\s*;\s*GEEK/s;
+            const regex = /GEEK\.geekitemPreload\s*=\s*(\{.*?\})\s*;\s*\n\s*GEEK/s;
             const match = html.match(regex);
 
             if (match && match[1]) {
@@ -283,10 +283,43 @@
                 const score = item.stats?.average ? parseFloat(item.stats.average).toFixed(1) : "?";
                 const weight = item.stats?.avgweight ? parseFloat(item.stats.avgweight).toFixed(2) : "?";
 
+                // Rankinfo Example:
+                // rankinfo":[
+                //   {
+                //       "prettyname":"Board Game Rank",
+                //       "shortprettyname":"Overall Rank",
+                //       "veryshortprettyname":"Overall",
+                //       "subdomain":null,
+                //       "rankobjecttype":"subtype",
+                //       "rankobjectid":1,
+                //       "browsesubtype":"boardgame",
+                //       "rank":"10343",
+                //       "baverage":"5.57968"
+                //   },
+                //   {
+                //       "prettyname":"Family Game Rank",
+                //       "shortprettyname":"Family Rank",
+                //       "veryshortprettyname":"Family ",
+                //       "subdomain":"familygames",
+                //       "rankobjecttype":"family",
+                //       "rankobjectid":5499,
+                //       "browsesubtype":"boardgame",
+                //       "rank":"2502",
+                //       "baverage":"5.59625"
+                //   }
+                // ],
                 let rank = "-";
                 if (Array.isArray(item.rankinfo)) {
-                    const rObj = item.rankinfo.find(r => r.name === "boardgame") || item.rankinfo.find(r => r.id === "1");
-                    if (rObj && rObj.rank !== "Not Ranked") rank = rObj.rank;
+                    // 1. Try to find the specific "Overall" rank (ID 1)
+                    // 2. Fallback to the first item in the list (usually the main rank)
+                    const rObj = item.rankinfo.find(r => r.rankobjectid === 1) || 
+                                item.rankinfo.find(r => r.rankobjectid === "1") || // Just in case it's a string in other contexts
+                                item.rankinfo[0];
+
+                    // Ensure the rank is a valid number/string and not "Not Ranked"
+                    if (rObj && rObj.rank && rObj.rank !== "Not Ranked") {
+                        rank = rObj.rank;
+                    }
                 }
 
                 let best = "?";
