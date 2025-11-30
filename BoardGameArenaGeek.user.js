@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         BGA to BGG - BoardGameArenaGeek
 // @namespace    https://github.com/coezbek/BoardGameArenaGeek
-// @version      1.0.1
+// @version      1.0.2
 // @description  Fetches BoardGameGeek.com (BGG) stats for games on BoardGameArena.com (BGA).
 // @author       coezbek
 // @match        https://boardgamearena.com/*
@@ -312,7 +312,7 @@
                 if (Array.isArray(item.rankinfo)) {
                     // 1. Try to find the specific "Overall" rank (ID 1)
                     // 2. Fallback to the first item in the list (usually the main rank)
-                    const rObj = item.rankinfo.find(r => r.rankobjectid === 1) || 
+                    const rObj = item.rankinfo.find(r => r.rankobjectid === 1) ||
                                 item.rankinfo.find(r => r.rankobjectid === "1") || // Just in case it's a string in other contexts
                                 item.rankinfo[0];
 
@@ -461,7 +461,45 @@
         }
     }
 
-    // Run loop
-    setInterval(scan, 2000);
+// --- SCHEDULER & NAVIGATION HANDLER ---
+
+    let currentUrl = location.href;
+    let scanInterval = null;
+
+    // Logic to start the "2s wait -> Scan -> 15s Loop" pattern
+    function startSchedule() {
+        // Stop any existing loop
+        if (scanInterval) clearInterval(scanInterval);
+
+        // 1. Wait 2 seconds (allow page to load), then Scan
+        setTimeout(() => {
+            scan();
+
+            // 2. Start the 15-second loop
+            scanInterval = setInterval(scan, 15000);
+        }, 2000);
+    }
+
+    // Watch for URL changes (checks every 1s)
+    setInterval(() => {
+        if (location.href !== currentUrl) {
+            log("Navigation detected - Resetting...", 'warn');
+            currentUrl = location.href;
+
+            // 1. Clear the Queue
+            queue = [];
+            totalDetected = 0;
+            totalProcessed = 0;
+
+            // 2. Reset Status UI
+            updateStatus();
+
+            // 3. Restart the Schedule
+            startSchedule();
+        }
+    }, 1000);
+
+    // Initial Start
+    startSchedule();
 
 })();
